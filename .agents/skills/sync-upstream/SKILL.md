@@ -62,7 +62,10 @@ into that same commit (`git commit --amend --no-edit`).
 | `/blaxel` workdir (generic and agent hub images) | `/workspace`, default `HOME` |
 | `*.bl.run`, `run.blaxel.ai` (prod hosts) | `*.b10.co` |
 | `*.runv2.blaxel.dev`, `run.blaxel.dev` (dev hosts) | `*.dev.b10.co` |
-| env vars `BL_<NAME>` (code, Dockerfiles, scripts, CI, docs) | `BASETEN_SANDBOX_<NAME>`, plain prefix swap (`BL_ENV` → `BASETEN_SANDBOX_ENV`) |
+| env vars `BL_<NAME>` (code, Dockerfiles, scripts, CI, docs) | `BASETEN_SANDBOX_<NAME>` (`BL_ENV` → `BASETEN_SANDBOX_ENV`) |
+| env vars `BL_SANDBOX_<NAME>` | `BASETEN_SANDBOX_<NAME>`, no doubled `SANDBOX_` (`BL_SANDBOX_USER` → `BASETEN_SANDBOX_USER`) |
+| `BL_NAME`, `BL_SANDBOX_NAME` | `BASETEN_SANDBOX_NAME` |
+| `BL_WORKSPACE_ID`, `BL_WORKSPACE` (no workspace concept here) | `BASETEN_SANDBOX_TEAM_ID` |
 | `docs.blaxel.ai/...` | `docs.baseten.co/sandboxes/...` (closest page) |
 | image `ghcr.io/blaxel-ai/sandbox` | `docker.io/baseten/sandbox` |
 | "Blaxel" in texts, template.json, skills, README | "Baseten" or a neutral name |
@@ -70,7 +73,8 @@ into that same commit (`git commit --amend --no-edit`).
 | CI on `develop` | CI on `main` only |
 | arm64 sandbox-api image | not built |
 
-**Keep as is** (runtime contracts with the platform): `X-Blaxel-*` headers, identity token path, archive format and paths.
+**Keep as is**: `BL_ENV` given to the `bl` CLI action in `build.yaml` (read by that CLI,
+not by us). Runtime contracts with the platform: `X-Blaxel-*` headers, identity token path, archive format and paths.
 
 **Removed in the fork, skip upstream changes to them**: `.bruno/`, CodSpeed workflow and
 Makefile target, `blaxel.toml` files, Makefile targets calling the `bl` CLI, `hub/node-test.py`,
