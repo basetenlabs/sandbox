@@ -23,6 +23,27 @@ func TestSandboxHost(t *testing.T) {
 	}
 }
 
+func TestPublicHostPrefersInjectedURL(t *testing.T) {
+	t.Setenv("BL_URL", "") // the runner's own environment must not leak in
+	t.Setenv("BL_ENV", "prod")
+	t.Setenv("BL_WORKSPACE_ID", "WS1")
+	t.Setenv("BL_NAME", "box")
+	t.Setenv("BL_REGION", "us-pdx-1")
+	if got := publicHost(); got != "sbx-box-ws1.us-pdx-1.b10.co" {
+		t.Fatalf("fallback: got %q", got)
+	}
+
+	t.Setenv("BL_URL", "https://sbx-box-ws1.us-pdx-1.b10.co")
+	if got := publicHost(); got != "sbx-box-ws1.us-pdx-1.b10.co" {
+		t.Fatalf("BL_URL: got %q", got)
+	}
+
+	t.Setenv("BL_URL", "https://sbx-box-ws1.us-pdx-1.b10.co?source=x#y")
+	if got := publicHost(); got != "sbx-box-ws1.us-pdx-1.b10.co" {
+		t.Fatalf("query and fragment must not be part of the host: got %q", got)
+	}
+}
+
 // doc.json must follow the environment at request time, not at startup.
 func TestSwaggerDocFollowsEnvironment(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -38,6 +59,7 @@ func TestSwaggerDocFollowsEnvironment(t *testing.T) {
 		return doc.Host, doc.BasePath
 	}
 
+	t.Setenv("BL_URL", "") // exercise the fallback, whatever the runner exports
 	t.Setenv("BL_ENV", "prod")
 	t.Setenv("BL_WORKSPACE_ID", "WS1")
 	t.Setenv("BL_NAME", "box")
