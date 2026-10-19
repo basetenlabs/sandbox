@@ -106,6 +106,7 @@ skill describes the layout).
 Write the last upstream SHA you handled (ported or skipped, never one you stopped before) into
 `.upstream-sha`, commit it as `chore: sync upstream to <short sha>`.
 
-Open the PR against `main`. Body: one line per upstream commit, in order, with its link
+Open the PR on the fork, never upstream: `gh` defaults to the parent repo of a fork, so always
+pass `-R basetenlabs/sandbox --base main`. Body: one line per upstream commit, in order, with its link
 (`https://github.com/blaxel-ai/sandbox/commit/<sha>`) and its bucket: ported, adapted (say what
 was translated), or skipped (say why). Put anything triaged as Ask at the top.
