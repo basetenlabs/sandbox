@@ -33,10 +33,10 @@ printf 'root only\n' > /root/.integration-identity-secret
 chmod 600 /root/.integration-identity-secret
 
 LOG=$(mktemp)
-# BL_WORKSPACE_ID lets drive mount requests get far enough to exercise the mount
+# BASETEN_SANDBOX_TEAM_ID lets drive mount requests get far enough to exercise the mount
 # point creation, which is what the escalation test checks.
 SANDBOX_LOG_DIR=${SANDBOX_LOG_DIR:-/tmp/sandbox-api-logs} \
-    BL_WORKSPACE_ID=${BL_WORKSPACE_ID:-test} \
+    BASETEN_SANDBOX_TEAM_ID=${BASETEN_SANDBOX_TEAM_ID:-test} \
     "$BINARY" --user "$WORKLOAD_USER" -port "$API_PORT" > "$LOG" 2>&1 &
 API_PID=$!
 

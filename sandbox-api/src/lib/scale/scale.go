@@ -15,11 +15,11 @@ const (
 
 	// EnvDisableKeepAlive disables the keepAlive feature for the whole sandbox
 	// when set to a truthy value at boot.
-	EnvDisableKeepAlive = "BL_DISABLE_KEEPALIVE"
+	EnvDisableKeepAlive = "BASETEN_SANDBOX_DISABLE_KEEPALIVE"
 )
 
 // KeepAliveDisabled reports whether the keepAlive feature is disabled for
-// this sandbox via the BL_DISABLE_KEEPALIVE environment variable.
+// this sandbox via the BASETEN_SANDBOX_DISABLE_KEEPALIVE environment variable.
 func KeepAliveDisabled() bool {
 	v, err := strconv.ParseBool(strings.TrimSpace(os.Getenv(EnvDisableKeepAlive)))
 	return err == nil && v
@@ -130,7 +130,7 @@ func ScaleEnable() error {
 // HoldAwake keeps the sandbox from being hibernated for as long as the returned
 // release function has not been called.
 //
-// Unlike ScaleDisable it ignores BL_DISABLE_KEEPALIVE: it exists for the
+// Unlike ScaleDisable it ignores BASETEN_SANDBOX_DISABLE_KEEPALIVE: it exists for the
 // operations this API cannot survive being suspended in the middle of - an
 // archive export streaming the filesystem out, an import restoring it at boot -
 // where a sandbox that opted out of keeping itself alive for its workload would

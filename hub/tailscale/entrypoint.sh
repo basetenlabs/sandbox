@@ -6,7 +6,7 @@ if [ -z "${TS_AUTHKEY:-}" ]; then
   exit 1
 fi
 
-export TS_HOSTNAME="${TS_HOSTNAME:-${SANDBOX_NAME:-${BL_NAME:-tailscale-sandbox}}}"
+export TS_HOSTNAME="${TS_HOSTNAME:-${SANDBOX_NAME:-${BASETEN_SANDBOX_NAME:-tailscale-sandbox}}}"
 startup_timeout=${TS_STARTUP_TIMEOUT_SECONDS:-60}
 case "$startup_timeout" in
   ''|*[!0-9]*) echo "TS_STARTUP_TIMEOUT_SECONDS must be a non-negative integer" >&2; exit 1 ;;

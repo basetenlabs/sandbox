@@ -24,7 +24,7 @@ case "$output" in
 esac
 
 # Shadow the real binaries through PATH so the entrypoint can be tested without Tailscale.
-# This happy path also proves that BL_NAME becomes the default Tailscale hostname.
+# This happy path also proves that BASETEN_SANDBOX_NAME becomes the default Tailscale hostname.
 cat >"$tmp/containerboot" <<'EOF'
 #!/bin/sh
 sleep 1
@@ -39,7 +39,7 @@ test "$TS_HOSTNAME" = "test-sandbox"
 EOF
 chmod +x "$tmp/containerboot" "$tmp/tailscale" "$tmp/sandbox-api"
 
-PATH="$tmp:$PATH" TS_AUTHKEY=test BL_NAME=test-sandbox bash "$entrypoint"
+PATH="$tmp:$PATH" TS_AUTHKEY=test BASETEN_SANDBOX_NAME=test-sandbox bash "$entrypoint"
 
 # If containerboot exits before Tailscale is ready, surface that failure instead of waiting.
 cat >"$tmp/containerboot" <<'EOF'

@@ -22,7 +22,7 @@ func performReload(t *testing.T, h *EnvironmentHandler) *httptest.ResponseRecord
 
 func TestReloadAppliesEnvironment(t *testing.T) {
 	doc := filepath.Join(t.TempDir(), "metadata")
-	t.Setenv("BL_METADATA_PATH", doc)
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", doc)
 	t.Cleanup(func() {
 		os.Unsetenv("RELOAD_TEST_DIRECT")
 	})
@@ -45,7 +45,7 @@ func TestReloadAppliesEnvironment(t *testing.T) {
 
 func TestHandleReloadAppliesAndRemoves(t *testing.T) {
 	doc := filepath.Join(t.TempDir(), "metadata")
-	t.Setenv("BL_METADATA_PATH", doc)
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", doc)
 
 	h := NewEnvironmentHandler()
 	t.Cleanup(func() {
@@ -81,7 +81,7 @@ func TestHandleReloadAppliesAndRemoves(t *testing.T) {
 
 func TestHandleReloadRemovesBootTimeVariable(t *testing.T) {
 	doc := filepath.Join(t.TempDir(), "metadata")
-	t.Setenv("BL_METADATA_PATH", doc)
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", doc)
 	// A host-injected variable present in the process since boot: the initrd
 	// applied it from the same metadata document before exec.
 	t.Setenv("RELOAD_TEST_BOOT", "from-host")
@@ -112,7 +112,7 @@ func TestHandleReloadRemovesBootTimeVariable(t *testing.T) {
 }
 
 func TestHandleReloadWithoutMetadata(t *testing.T) {
-	t.Setenv("BL_METADATA_PATH", filepath.Join(t.TempDir(), "missing"))
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", filepath.Join(t.TempDir(), "missing"))
 
 	if w := performReload(t, NewEnvironmentHandler()); w.Code != http.StatusNotFound {
 		t.Fatalf("expected 404, got %d", w.Code)
@@ -121,7 +121,7 @@ func TestHandleReloadWithoutMetadata(t *testing.T) {
 
 func TestReloadRemovesDroppedHostManagedVariables(t *testing.T) {
 	doc := filepath.Join(t.TempDir(), "metadata")
-	t.Setenv("BL_METADATA_PATH", doc)
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", doc)
 	t.Setenv("RELOAD_TEST_DROPPED", "inherited")
 	t.Setenv("RELOAD_TEST_KEPT", "inherited")
 
@@ -151,7 +151,7 @@ func TestReloadRemovesDroppedHostManagedVariables(t *testing.T) {
 }
 
 func TestReloadWithoutMetadata(t *testing.T) {
-	t.Setenv("BL_METADATA_PATH", filepath.Join(t.TempDir(), "missing"))
+	t.Setenv("BASETEN_SANDBOX_METADATA_PATH", filepath.Join(t.TempDir(), "missing"))
 	t.Setenv("RELOAD_TEST_NO_METADATA", "inherited")
 
 	h := NewEnvironmentHandler()
