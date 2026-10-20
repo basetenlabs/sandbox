@@ -2,7 +2,7 @@
 // its kernel command line.
 //
 // The command line is bounded, so the runtime moves everything that does not
-// fit into a file mounted from a secret and names it in BL_ENV_VAR_PATH. The
+// fit into a file mounted from a secret and names it in BASETEN_SANDBOX_ENV_VAR_PATH. The
 // guest's init wrapper reads that file before exec'ing the
 // workload, but may have loaded an older version before a restart.
 //
@@ -19,7 +19,7 @@ import (
 )
 
 // PathVar names the file holding the overflowed environment.
-const PathVar = "BL_ENV_VAR_PATH"
+const PathVar = "BASETEN_SANDBOX_ENV_VAR_PATH"
 
 // Load sets every variable carried by the file named by PathVar, overwriting
 // inherited values, and reports the names it applied. It is a no-op when the
