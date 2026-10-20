@@ -2,6 +2,8 @@ module github.com/basetenlabs/sandbox/sandbox-api/integration_tests
 
 go 1.25.0
 
+toolchain go1.27.3
+
 require (
 	github.com/basetenlabs/sandbox/sandbox-api v0.0.0
 	github.com/gorilla/websocket v1.5.3
