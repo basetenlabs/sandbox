@@ -130,7 +130,7 @@ func extractDriveNameFromInfraId(infrastructureId string) string {
 	withoutPrefix := strings.TrimPrefix(infrastructureId, "drv-")
 
 	// Get workspace ID from environment
-	workspaceID := strings.ToLower(os.Getenv("BL_WORKSPACE_ID"))
+	workspaceID := strings.ToLower(os.Getenv("BASETEN_SANDBOX_TEAM_ID"))
 	if workspaceID == "" {
 		// If we can't get workspace ID, return the whole thing without prefix
 		return withoutPrefix

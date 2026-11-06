@@ -125,7 +125,7 @@ func exitCallbackLocked(p *ProcessInfo) *exitCallback {
 	ts := time.Now().Unix()
 	body, err := json.Marshal(exitEvent{
 		Type:        "process.exited",
-		Sandbox:     os.Getenv("BL_NAME"),
+		Sandbox:     os.Getenv("BASETEN_SANDBOX_NAME"),
 		PID:         p.PID,
 		Name:        p.Name,
 		Command:     p.Command,

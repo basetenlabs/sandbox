@@ -219,7 +219,7 @@ func SetupRouter(disableRequestLogging bool, enableProcessingTime bool) *gin.Eng
 	r.HEAD("/health", head)
 
 	// Debug routes (dev environment only)
-	if os.Getenv("BL_ENV") == "dev" {
+	if os.Getenv("BASETEN_SANDBOX_ENV") == "dev" {
 		r.GET("/debug/panic", func(c *gin.Context) {
 			panic("test panic for sentry verification")
 		})
@@ -494,14 +494,14 @@ func swaggerHandler() gin.HandlerFunc {
 	}
 }
 
-// publicHost returns the public hostname of this sandbox, from the BL_URL the
+// publicHost returns the public hostname of this sandbox, from the BASETEN_SANDBOX_URL the
 // control plane injects. Sandboxes created before that variable existed fall
 // back to rebuilding it with sandboxHost.
 func publicHost() string {
-	if parsed, err := url.Parse(os.Getenv("BL_URL")); err == nil && parsed.Host != "" {
+	if parsed, err := url.Parse(os.Getenv("BASETEN_SANDBOX_URL")); err == nil && parsed.Host != "" {
 		return parsed.Host
 	}
-	return sandboxHost(os.Getenv("BL_ENV"), os.Getenv("BL_WORKSPACE_ID"), os.Getenv("BL_NAME"), os.Getenv("BL_REGION"))
+	return sandboxHost(os.Getenv("BASETEN_SANDBOX_ENV"), os.Getenv("BASETEN_SANDBOX_TEAM_ID"), os.Getenv("BASETEN_SANDBOX_NAME"), os.Getenv("BASETEN_SANDBOX_REGION"))
 }
 
 // sandboxHost returns the public hostname of this sandbox,

@@ -1,6 +1,6 @@
-# API isolation (`BL_SANDBOX_API_ISOLATION`)
+# API isolation (`BASETEN_SANDBOX_API_ISOLATION`)
 
-With `BL_SANDBOX_API_ISOLATION=true`, the sandbox API refuses connections from
+With `BASETEN_SANDBOX_API_ISOLATION=true`, the sandbox API refuses connections from
 user workloads running inside the sandbox. Calls through the gateway are not
 affected.
 
@@ -13,14 +13,14 @@ that answers refused connections with a TCP reset.
 RUN adduser -D -u 10001 -h /home/app app
 USER app
 
-ENV BL_SANDBOX_API_ISOLATION=true
+ENV BASETEN_SANDBOX_API_ISOLATION=true
 ```
 
 The option enables the workload identity: processes, terminals and filesystem
 operations run as the image `USER` (exported by the runtime as
-`BL_SANDBOX_USER`), without `BL_SANDBOX_USER_ENABLED`. See
+`BASETEN_SANDBOX_USER`), without `BASETEN_SANDBOX_USER_ENABLED`. See
 [UNPRIVILEGED_EXECUTION.md](UNPRIVILEGED_EXECUTION.md) for what that identity
-covers. `--user` and `BL_SANDBOX_USER_ENABLED` take precedence.
+covers. `--user` and `BASETEN_SANDBOX_USER_ENABLED` take precedence.
 
 ## Rules
 

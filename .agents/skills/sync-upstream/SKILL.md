@@ -65,6 +65,9 @@ into that same commit (`git commit --amend --no-edit`).
 | env vars `BL_<NAME>` (code, Dockerfiles, scripts, CI, docs) | `BASETEN_SANDBOX_<NAME>` (`BL_ENV` → `BASETEN_SANDBOX_ENV`) |
 | env vars `BL_SANDBOX_<NAME>` | `BASETEN_SANDBOX_<NAME>`, no doubled `SANDBOX_` (`BL_SANDBOX_USER` → `BASETEN_SANDBOX_USER`) |
 | `BL_NAME`, `BL_SANDBOX_NAME` | `BASETEN_SANDBOX_NAME` |
+| `BLAXEL_SCALE_FILE` (scale-to-zero control file override) | `SANDBOX_SCALE_FILE` |
+| upgrade binary marker `blaxel-sandbox-api:...` | `baseten-sandbox-api:...` |
+| upgrade release source `github.com/blaxel-ai/sandbox/releases` | `github.com/basetenlabs/sandbox/releases` |
 | `BL_WORKSPACE_ID`, `BL_WORKSPACE` (no workspace concept here) | `BASETEN_SANDBOX_TEAM_ID` |
 | `docs.blaxel.ai/...` | `docs.baseten.co/sandboxes/...` (closest page) |
 | image `ghcr.io/blaxel-ai/sandbox` | `docker.io/baseten/sandbox` |

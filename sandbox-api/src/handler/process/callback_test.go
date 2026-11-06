@@ -104,7 +104,7 @@ func TestExitCallbackOnlyOnFinalExit(t *testing.T) {
 	originalLogDir := ProcessLogDir
 	ProcessLogDir = t.TempDir()
 	t.Cleanup(func() { ProcessLogDir = originalLogDir })
-	t.Setenv("BL_NAME", "my-sandbox")
+	t.Setenv("BASETEN_SANDBOX_NAME", "my-sandbox")
 	// The real hold would make the scale package cache "no scale file" for
 	// every later test in this binary.
 	fakeHolds(t, nil)
@@ -247,7 +247,7 @@ func TestWebhookHoldTakenBeforeKeepAliveRelease(t *testing.T) {
 	ProcessLogDir = t.TempDir()
 	t.Cleanup(func() { ProcessLogDir = originalLogDir })
 	t.Setenv("SANDBOX_SCALE_FILE", ProcessLogDir+"/scale")
-	t.Setenv("BL_DISABLE_KEEPALIVE", "")
+	t.Setenv("BASETEN_SANDBOX_DISABLE_KEEPALIVE", "")
 	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
 	defer srv.Close()
 
