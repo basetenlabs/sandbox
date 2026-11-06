@@ -344,6 +344,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
+                    },
+                    "507": {
+                        "description": "Insufficient Storage",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
                     }
                 }
             }
@@ -381,6 +387,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
@@ -506,6 +518,58 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/filesystem-copy": {
+            "post": {
+                "description": "Recursively copy a file or directory in one request, placed like ` + "`" + `cp -r` + "`" + `: when destination is an existing directory (or a symlink to one), the copy goes inside it, named after source; otherwise destination is the copy's path. Relative paths use the filesystem working directory. Source symlinks are copied as symlinks; special files are refused. By default existing files are overwritten and existing directories merged.\n\nWith noOverwrite=true, every entry is created exclusively (O_EXCL, mkdir, symlink), with no check-then-write race: an existing final target, including an empty directory or a dangling symlink, returns 409 with code FILE_ALREADY_EXISTS and is left unchanged. A copy is not a transaction: on a later failure, entries it already created remain.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "filesystem"
+                ],
+                "summary": "Copy a file or directory",
+                "parameters": [
+                    {
+                        "description": "Source, destination, and optional noOverwrite flag",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CopyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Files copied",
+                        "schema": {
+                            "$ref": "#/definitions/CopyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Destination exists (FILE_ALREADY_EXISTS)",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Copy failed",
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
@@ -970,7 +1034,7 @@ const docTemplate = `{
         },
         "/filesystem/tree/{path}": {
             "get": {
-                "description": "Get a recursive directory tree structure starting from the specified path",
+                "description": "List a directory. Without query parameters, ` + "`" + `files` + "`" + ` and ` + "`" + `subdirectories` + "`" + ` hold its direct children.\n\nWith ` + "`" + `recursive=true` + "`" + `, they hold every file and directory below the path (flat, with full paths). With ` + "`" + `content=true` + "`" + `, each regular file (or symlink to one) also carries its ` + "`" + `content` + "`" + ` as UTF-8 text, like a JSON file read; other entries have no ` + "`" + `content` + "`" + `. ` + "`" + `patterns` + "`" + `, ` + "`" + `excludeDirs` + "`" + ` and ` + "`" + `excludeHidden` + "`" + ` select entries the same way as find, but nothing is excluded by default.\n\nThe response is all or nothing: when more than ` + "`" + `maxFiles` + "`" + ` files match, or ` + "`" + `content=true` + "`" + ` and they hold more than ` + "`" + `maxBytes` + "`" + ` bytes, the request fails with 422 before any content is read.",
                 "consumes": [
                     "application/json"
                 ],
@@ -988,6 +1052,48 @@ const docTemplate = `{
                         "name": "path",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "List every file and directory below the path, not only its direct children (default: false)",
+                        "name": "recursive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include the content of each regular file, as UTF-8 text (default: false)",
+                        "name": "content",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated glob patterns matched against file names (e.g., *.json,*.md). Directories are not filtered.",
+                        "name": "patterns",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated directory names to skip with everything below them (default: none)",
+                        "name": "excludeDirs",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Skip files and directories whose name starts with a dot (default: false)",
+                        "name": "excludeHidden",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Fail with 422 when more files match (default: 10000 with recursive or content, otherwise unlimited; at most 100000)",
+                        "name": "maxFiles",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "With content=true, fail with 422 when the matching files hold more bytes (default: 33554432, 32 MiB; at most 268435456, 256 MiB)",
+                        "name": "maxBytes",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1004,7 +1110,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Unprocessable entity",
+                        "description": "Unprocessable entity, including a maxFiles or maxBytes limit",
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
@@ -2034,9 +2140,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/process/{identifier}/wait": {
+            "get": {
+                "description": "Hold the request until the process is over for good (no restart to come) or the timeout expires, then return the process like GET /process/{identifier}. A process still running after the timeout comes back with status running: call again. Replaces polling GET /process/{identifier}.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "process"
+                ],
+                "summary": "Wait for a process to finish",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Process identifier (PID or name)",
+                        "name": "identifier",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Seconds to wait (default and max 119; larger values are capped)",
+                        "name": "timeout",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Process information",
+                        "schema": {
+                            "$ref": "#/definitions/ProcessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid timeout",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Process not found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/upgrade": {
             "post": {
-                "description": "Triggers an upgrade of the sandbox-api process. Returns 200 immediately before upgrading.\nThe upgrade will: download the specified binary from GitHub releases, validate it, and restart.\nAll running processes will be preserved across the upgrade.\nAvailable versions: \"latest\" (default, most recent release), \"develop\", \"main\", or specific tag like \"v1.0.0\"\nYou can also specify a custom baseUrl for forks (defaults to https://github.com/basetenlabs/sandbox/releases)",
+                "description": "Triggers an upgrade of the sandbox-api process. Returns 200 immediately before upgrading.\nThe upgrade will: download the specified binary from GitHub releases, validate it, and restart.\nAll running processes will be preserved across the upgrade.\nAvailable versions: \"latest\" (default, most recent release), \"develop\", \"main\", or specific tag like \"v1.0.0\"\nBinaries are downloaded from https://github.com/basetenlabs/sandbox/releases; requests with a baseUrl are rejected.\nReleases that still accepted a baseUrl are refused, and the refusal is reported in the health endpoint's lastUpgrade.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2064,6 +2220,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/SuccessResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid version or baseUrl",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -2075,7 +2237,7 @@ const docTemplate = `{
         },
         "/watch/filesystem/{path}": {
             "get": {
-                "description": "Streams change events for a directory until the client disconnects.\n\nThe body is JSON lines (sent with ` + "`" + `Content-Type: text/plain` + "`" + `): one event object per line, e.g. ` + "`" + `{\"op\":\"WRITE\",\"name\":\"main.go\",\"path\":\"/app/src\",\"error\":null}` + "`" + `. ` + "`" + `op` + "`" + ` is the fsnotify operation (CREATE, WRITE, REMOVE, RENAME or CHMOD, several can be joined with ` + "`" + `|` + "`" + `), ` + "`" + `name` + "`" + ` the base name of the changed entry, ` + "`" + `path` + "`" + ` the directory containing it, and ` + "`" + `error` + "`" + ` is always null. A ` + "`" + `[keepalive]` + "`" + ` line (not JSON) is sent every 30 seconds.\nOnly the directory's direct entries are watched. To also watch every subdirectory, including ones created later, end the path with ` + "`" + `/**` + "`" + `. The stream reports subsequent changes without an initial snapshot. When a new directory is detected, synthetic CREATE events are emitted for entries already present inside it to cover changes before its watch was registered.",
+                "description": "Streams change events for a directory until the client disconnects.\n\nThe body is JSON lines (sent with ` + "`" + `Content-Type: text/plain` + "`" + `): one event object per line, e.g. ` + "`" + `{\"op\":\"WRITE\",\"name\":\"main.go\",\"path\":\"/app/src\",\"error\":null}` + "`" + `. ` + "`" + `op` + "`" + ` is the fsnotify operation (CREATE, WRITE, REMOVE, RENAME or CHMOD, several can be joined with ` + "`" + `|` + "`" + `), ` + "`" + `name` + "`" + ` the base name of the changed entry, ` + "`" + `path` + "`" + ` the directory containing it, and ` + "`" + `error` + "`" + ` is always null. A ` + "`" + `[keepalive]` + "`" + ` line (not JSON) is sent every 30 seconds. The response starts once the watch is registered, and the stream ends when the watched directory is removed or renamed, or when events were dropped because the kernel queue overflowed (reopen and resync).\nOnly the directory's direct entries are watched. To also watch every subdirectory, including ones created later, end the path with ` + "`" + `/**` + "`" + `. The stream reports subsequent changes without an initial snapshot. When a new directory is detected, synthetic CREATE events are emitted for entries already present inside it to cover changes before its watch was registered.",
                 "produces": [
                     "text/plain"
                 ],
@@ -2086,7 +2248,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Comma-separated substrings; events whose full path contains one are skipped",
+                        "description": "Comma-separated substrings; events whose full path contains one are skipped, and matching directories are not watched at all",
                         "name": "ignore",
                         "in": "query"
                     },
@@ -2288,6 +2450,47 @@ const docTemplate = `{
                 }
             }
         },
+        "CopyRequest": {
+            "type": "object",
+            "required": [
+                "destination",
+                "source"
+            ],
+            "properties": {
+                "destination": {
+                    "type": "string",
+                    "example": "/app/destination"
+                },
+                "noOverwrite": {
+                    "type": "boolean",
+                    "default": false,
+                    "example": false
+                },
+                "source": {
+                    "type": "string",
+                    "example": "/app/source"
+                }
+            }
+        },
+        "CopyResponse": {
+            "type": "object",
+            "required": [
+                "destination",
+                "message",
+                "source"
+            ],
+            "properties": {
+                "destination": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
         "Directory": {
             "type": "object",
             "required": [
@@ -2308,6 +2511,10 @@ const docTemplate = `{
                 },
                 "path": {
                     "type": "string"
+                },
+                "recursive": {
+                    "description": "Recursive is true when files and subdirectories hold every level below\npath (tree read with recursive=true). Older APIs ignore that parameter\nand omit this field, so clients can tell a one-level listing apart.",
+                    "type": "boolean"
                 },
                 "subdirectories": {
                     "description": "@name Subdirectories",
@@ -2436,6 +2643,10 @@ const docTemplate = `{
                 "error"
             ],
             "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "FILE_ALREADY_EXISTS"
+                },
                 "error": {
                     "type": "string",
                     "example": "Error message"
@@ -2588,6 +2799,10 @@ const docTemplate = `{
                 "size"
             ],
             "properties": {
+                "content": {
+                    "description": "Content is set only by a tree read with content=true, for regular files.",
+                    "type": "string"
+                },
                 "group": {
                     "type": "string"
                 },
@@ -2967,6 +3182,16 @@ const docTemplate = `{
                 "command"
             ],
             "properties": {
+                "callbackSecret": {
+                    "description": "Key the webhook is signed with (HMAC-SHA256, X-Blaxel-Signature header). At least 32 characters; required with callbackUrl. Never returned by the API.",
+                    "type": "string",
+                    "example": "a-random-secret-of-at-least-32-chars"
+                },
+                "callbackUrl": {
+                    "description": "URL that receives a signed process.exited webhook when the process ends for good (not on auto-restart). Requires callbackSecret.",
+                    "type": "string",
+                    "example": "https://example.com/hooks/process"
+                },
                 "command": {
                     "type": "string",
                     "example": "ls -la"
@@ -3312,12 +3537,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "baseUrl": {
-                    "description": "Base URL for releases (useful for forks)",
-                    "type": "string",
-                    "example": "https://github.com/basetenlabs/sandbox/releases"
+                    "description": "Deprecated: custom binary sources are not accepted",
+                    "type": "string"
                 },
                 "version": {
-                    "description": "Version to upgrade to: \"latest\" (default), \"develop\", \"main\", or specific tag like \"v1.0.0\"",
+                    "description": "Version to upgrade to: \"latest\" (default), \"develop\", \"main\", or a release tag like \"v1.0.0\"",
                     "type": "string",
                     "example": "latest"
                 }

@@ -95,6 +95,11 @@ func main() {
 	if *shortPort != 8080 {
 		portValue = *shortPort
 	}
+	// The upgrade's validation instance (started with -p ValidationPort) adopts
+	// the live instance's processes; only the live one may report their exits.
+	if portValue == process.ValidationPort {
+		process.DisableExitWebhooks()
+	}
 
 	// Before anything of the workload runs, so no process of it ever sees the
 	// API reachable. Failing to install the rules is fatal: the option was
@@ -243,13 +248,27 @@ func main() {
 
 	server := newHTTPServer(serverAddr, router)
 
-	// Set up signal handling for graceful shutdown
+	// SIGTERM stops the workload first and waits for it to exit, so it can
+	// still use the API, the drive mounts and the egress tunnel while it shuts
+	// down. SIGUSR2 announces a standby: it goes to the processes that handle
+	// it, and nothing stops.
+	// Separate channels: a SIGTERM must never be dropped behind a pending SIGUSR2.
+	standbyCh := make(chan os.Signal, 1)
+	signal.Notify(standbyCh, syscall.SIGUSR2)
+	go func() {
+		for range standbyCh {
+			logrus.Infof("Received SIGUSR2, forwarded to %d processes", archive.ForwardToWorkload(syscall.SIGUSR2))
+		}
+	}()
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		sig := <-sigCh
-		logrus.Infof("Received signal %v, shutting down...", sig)
+		logrus.Infof("Received signal %v, stopping the workload...", sig)
+		archive.TerminateWorkload()
+		logrus.Info("Workload stopped, shutting down...")
 
 		// Shutdown HTTP server gracefully with a timeout
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)

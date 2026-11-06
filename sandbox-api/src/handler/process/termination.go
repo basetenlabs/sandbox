@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/basetenlabs/sandbox/sandbox-api/src/handler/constants"
+	"github.com/basetenlabs/sandbox/sandbox-api/src/lib/lifecycle"
 	"github.com/basetenlabs/sandbox/sandbox-api/src/lib/scale"
 	"github.com/sirupsen/logrus"
 )
@@ -32,6 +33,23 @@ func (pm *ProcessManager) signalProcess(identifier string, signal syscall.Signal
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 	return pm.signalProcessLocked(identifier, signal, status)
+}
+
+// StopProcessGroup is StopProcess, and also sends SIGTERM to the rest of the
+// process group when the leader has already exited (log drain, restart
+// backoff), since StopProcess no longer signals anything then.
+func (pm *ProcessManager) StopProcessGroup(identifier string) error {
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+	p := pm.lookupProcessLocked(identifier)
+	leaderExited := p != nil && p.Status == StatusRunning && p.runExited
+	if err := pm.signalProcessLocked(identifier, syscall.SIGTERM, StatusStopped); err != nil {
+		return err
+	}
+	if leaderExited && p.ProcessPid > 0 && lifecycle.GroupAlive(p.ProcessPid) {
+		_ = syscall.Kill(-p.ProcessPid, syscall.SIGTERM)
+	}
+	return nil
 }
 
 // signalProcessLocked requires pm.mu to be held.
@@ -163,11 +181,16 @@ func (pm *ProcessManager) waitForRun(p *ProcessInfo, cmd *exec.Cmd, callback fun
 
 // finishProcess releases the scale hold once, after an observed final exit.
 func (pm *ProcessManager) finishProcess(p *ProcessInfo, callback func(*ProcessInfo)) {
+	pm.mu.RLock()
+	webhook := exitCallbackLocked(p)
+	pm.mu.RUnlock()
+	deliver := webhook.hold() // before releaseKeepAlive, so the sandbox never dips to 0 holds
 	pm.releaseKeepAlive(p)
 	p.logLock.Lock()
 	p.logWriters = nil
 	p.logLock.Unlock()
 	p.markFinished()
+	deliver()
 	if callback != nil {
 		callback(p)
 	}

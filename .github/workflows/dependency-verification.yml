@@ -25,6 +25,7 @@ jobs:
     if: >-
       contains(github.event.pull_request.title, 'Dependabot') ||
       startsWith(github.event.pull_request.title, 'chore(deps)') ||
+      startsWith(github.event.pull_request.title, 'fix(deps)') ||
       startsWith(github.head_ref, 'cploujoux/dependabot') ||
       startsWith(github.head_ref, 'cploujoux/devin/dependabot-') ||
       startsWith(github.head_ref, 'dependabot/') ||
@@ -63,6 +64,7 @@ jobs:
     if: >-
       contains(github.event.pull_request.title, 'Dependabot') ||
       startsWith(github.event.pull_request.title, 'chore(deps)') ||
+      startsWith(github.event.pull_request.title, 'fix(deps)') ||
       startsWith(github.head_ref, 'cploujoux/dependabot') ||
       startsWith(github.head_ref, 'cploujoux/devin/dependabot-') ||
       startsWith(github.head_ref, 'dependabot/') ||
@@ -96,3 +98,4 @@ jobs:
       - name: Run dependency smoke tests
         working-directory: hub/onboarder-nextjs/app-template
         run: npm test
+

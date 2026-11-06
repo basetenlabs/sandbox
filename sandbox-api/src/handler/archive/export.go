@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/basetenlabs/sandbox/sandbox-api/src/handler/process"
+	"github.com/basetenlabs/sandbox/sandbox-api/src/lib/lifecycle"
 	"github.com/basetenlabs/sandbox/sandbox-api/src/lib/scale"
 	"github.com/sirupsen/logrus"
 )
@@ -498,6 +499,8 @@ func quiesceWorkload(options ExportOptions) (quiescedWorkload, error) {
 			KeepAlive:        info.KeepAlive,
 			Stdin:            info.Stdin,
 			Timeout:          info.Timeout,
+			CallbackURL:      info.Callback.URL,
+			CallbackSecret:   info.Callback.Secret,
 		}
 		identifier := info.PID
 		candidate := stoppedProcess{
@@ -510,6 +513,9 @@ func quiesceWorkload(options ExportOptions) (quiescedWorkload, error) {
 		// than dropped: it is still running, so it is precisely the one that must
 		// go through the wait-and-kill path below instead of being left to write
 		// into the archive.
+		// The stop is a migration, not an end: the process is relaunched after
+		// the import (or after a failed export), so it must not report process.exited.
+		pm.SkipExitWebhook(identifier)
 		if err := pm.StopProcess(identifier); err != nil {
 			if info.Status != process.StatusRunning {
 				// It ended on its own between the listing and the stop: the export
@@ -609,6 +615,9 @@ type stoppedProcess struct {
 	identifier string
 	pid        int
 	done       chan struct{}
+	// group also waits for the rest of the process group (pid is its leader),
+	// such as children left behind by a leader that has exited.
+	group bool
 	// kill sends SIGKILL, through the process manager for a process it owns and
 	// directly otherwise.
 	kill func() error
@@ -621,6 +630,9 @@ type stoppedProcess struct {
 // owns the process; the signal probe covers a process it adopted and does not
 // wait on.
 func (p stoppedProcess) exited() bool {
+	if p.group && lifecycle.GroupAlive(p.pid) {
+		return false
+	}
 	if p.done != nil {
 		select {
 		case <-p.done:

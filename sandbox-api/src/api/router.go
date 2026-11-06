@@ -140,6 +140,7 @@ func SetupRouter(disableRequestLogging bool, enableProcessingTime bool) *gin.Eng
 	r.HEAD("/filesystem-multipart/:uploadId/parts", head)
 
 	// Filesystem routes
+	r.POST("/filesystem-copy", fsHandler.HandleCopy)
 	r.GET("/filesystem-find/*path", fsHandler.HandleFind)
 	r.HEAD("/filesystem-find/*path", head)
 	r.GET("/filesystem-search/*path", fsHandler.HandleFuzzySearch)
@@ -165,6 +166,8 @@ func SetupRouter(disableRequestLogging bool, enableProcessingTime bool) *gin.Eng
 	r.DELETE("/process/:identifier/stdin", processHandler.HandleCloseStdin)
 	r.DELETE("/process/:identifier", processHandler.HandleStopProcess)
 	r.DELETE("/process/:identifier/kill", processHandler.HandleKillProcess)
+	r.GET("/process/:identifier/wait", processHandler.HandleWaitProcess)
+	r.HEAD("/process/:identifier/wait", head)
 	r.GET("/process/:identifier", processHandler.HandleGetProcess)
 	r.HEAD("/process/:identifier", head)
 
@@ -191,6 +194,9 @@ func SetupRouter(disableRequestLogging bool, enableProcessingTime bool) *gin.Eng
 		r.HEAD("/terminal", head)
 		r.GET("/terminal/ws", terminalHandler.HandleTerminalWS)
 		r.HEAD("/terminal/ws", head)
+		r.GET("/terminal/stream", terminalHandler.HandleTerminalStream)
+		r.HEAD("/terminal/stream", head)
+		r.POST("/terminal/input", terminalHandler.HandleTerminalInput)
 	} else {
 		logrus.Info("Terminal endpoint disabled via DISABLE_TERMINAL environment variable")
 	}
@@ -481,11 +487,21 @@ func swaggerHandler() gin.HandlerFunc {
 		spec := *docs.SwaggerInfo // copy: ReadDoc mutates the spec it renders
 		spec.BasePath = "/"
 		spec.Host, spec.Schemes = "localhost:8080", []string{"http"}
-		if host := sandboxHost(os.Getenv("BASETEN_SANDBOX_ENV"), os.Getenv("BASETEN_SANDBOX_TEAM_ID"), os.Getenv("BASETEN_SANDBOX_NAME"), os.Getenv("BASETEN_SANDBOX_REGION")); host != "" {
+		if host := publicHost(); host != "" {
 			spec.Host, spec.Schemes = host, []string{"https"}
 		}
 		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(spec.ReadDoc()))
 	}
+}
+
+// publicHost returns the public hostname of this sandbox, from the BASETEN_SANDBOX_URL the
+// control plane injects. Sandboxes created before that variable existed fall
+// back to rebuilding it with sandboxHost.
+func publicHost() string {
+	if parsed, err := url.Parse(os.Getenv("BASETEN_SANDBOX_URL")); err == nil && parsed.Host != "" {
+		return parsed.Host
+	}
+	return sandboxHost(os.Getenv("BASETEN_SANDBOX_ENV"), os.Getenv("BASETEN_SANDBOX_TEAM_ID"), os.Getenv("BASETEN_SANDBOX_NAME"), os.Getenv("BASETEN_SANDBOX_REGION"))
 }
 
 // sandboxHost returns the public hostname of this sandbox,
