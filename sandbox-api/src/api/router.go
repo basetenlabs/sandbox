@@ -213,7 +213,7 @@ func SetupRouter(disableRequestLogging bool, enableProcessingTime bool) *gin.Eng
 	r.HEAD("/health", head)
 
 	// Debug routes (dev environment only)
-	if os.Getenv("BL_ENV") == "dev" {
+	if os.Getenv("BASETEN_SANDBOX_ENV") == "dev" {
 		r.GET("/debug/panic", func(c *gin.Context) {
 			panic("test panic for sentry verification")
 		})
@@ -481,7 +481,7 @@ func swaggerHandler() gin.HandlerFunc {
 		spec := *docs.SwaggerInfo // copy: ReadDoc mutates the spec it renders
 		spec.BasePath = "/"
 		spec.Host, spec.Schemes = "localhost:8080", []string{"http"}
-		if host := sandboxHost(os.Getenv("BL_ENV"), os.Getenv("BL_WORKSPACE_ID"), os.Getenv("BL_NAME"), os.Getenv("BL_REGION")); host != "" {
+		if host := sandboxHost(os.Getenv("BASETEN_SANDBOX_ENV"), os.Getenv("BASETEN_SANDBOX_TEAM_ID"), os.Getenv("BASETEN_SANDBOX_NAME"), os.Getenv("BASETEN_SANDBOX_REGION")); host != "" {
 			spec.Host, spec.Schemes = host, []string{"https"}
 		}
 		c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(spec.ReadDoc()))

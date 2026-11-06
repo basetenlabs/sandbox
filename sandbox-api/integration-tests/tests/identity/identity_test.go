@@ -2,7 +2,7 @@
 // of the user.
 //
 // The suite adapts to the instance it is pointed at. With WORKLOAD_USER set to
-// the identity the API was started with (--user / BL_SANDBOX_USER), it asserts
+// the identity the API was started with (--user / BASETEN_SANDBOX_USER), it asserts
 // that everything user-facing is scoped to it and that nothing can escalate
 // back to root. Without it, it asserts the opposite contract: an API with no
 // identity configured keeps doing everything as root, which is what every
@@ -102,7 +102,7 @@ func TestProcessCannotRequestRoot(t *testing.T) {
 
 	for _, body := range []map[string]interface{}{
 		{"command": "id -un", "waitForCompletion": true, "user": "root"},
-		{"command": "id -un", "waitForCompletion": true, "env": map[string]string{"BL_SANDBOX_USER": "root", "BL_AS_ROOT": "1"}},
+		{"command": "id -un", "waitForCompletion": true, "env": map[string]string{"BASETEN_SANDBOX_USER": "root", "BASETEN_SANDBOX_AS_ROOT": "1"}},
 	} {
 		resp, err := common.MakeRequest(http.MethodPost, "/process", body)
 		require.NoError(t, err)
@@ -187,8 +187,8 @@ func TestDriveMountCannotTakeOverAnExistingDirectory(t *testing.T) {
 
 	// The mount itself is expected to fail (there is no such drive); what
 	// matters is that nothing was handed over on the way.
-	require.NotContains(t, string(body), "BL_WORKSPACE_ID",
-		"the request never reached the mount point creation, set BL_WORKSPACE_ID on the API under test")
+	require.NotContains(t, string(body), "BASETEN_SANDBOX_TEAM_ID",
+		"the request never reached the mount point creation, set BASETEN_SANDBOX_TEAM_ID on the API under test")
 	assert.Equal(t, "root", runCommand(t, "stat -c %U "+target),
 		"a drive mount request changed the owner of %s", target)
 }

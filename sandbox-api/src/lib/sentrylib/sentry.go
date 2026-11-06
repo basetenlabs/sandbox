@@ -22,7 +22,7 @@ var DSN = ""
 //	-ldflags "-X github.com/basetenlabs/sandbox/sandbox-api/src/lib/sentrylib.Environment=<value>"
 //
 // Set to "prod" for main branch builds, "dev" for develop branch builds.
-// Falls back to BL_ENV at runtime if empty.
+// Falls back to BASETEN_SANDBOX_ENV at runtime if empty.
 var Environment = ""
 
 // Version is set by the caller before Init to attach release info to events.
@@ -56,7 +56,7 @@ func Init(disabled bool) func() {
 
 	env := Environment
 	if env == "" {
-		env = os.Getenv("BL_ENV")
+		env = os.Getenv("BASETEN_SANDBOX_ENV")
 	}
 	traceRate := 0.01
 	if env == "dev" {
@@ -90,10 +90,10 @@ func Init(disabled bool) func() {
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag("sandbox.env", env)
 		scope.SetTag("sandbox.version", Version)
-		if name := os.Getenv("BL_NAME"); name != "" {
+		if name := os.Getenv("BASETEN_SANDBOX_NAME"); name != "" {
 			scope.SetTag("sandbox.name", name)
 		}
-		if workspace := os.Getenv("BL_WORKSPACE"); workspace != "" {
+		if workspace := os.Getenv("BASETEN_SANDBOX_TEAM_ID"); workspace != "" {
 			scope.SetTag("sandbox.workspace", workspace)
 		}
 	})

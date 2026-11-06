@@ -10,7 +10,7 @@ import (
 
 const (
 	// EnvNetworkingConfig is the environment variable name for the base64-encoded WireGuard config
-	EnvNetworkingConfig = "BL_NETWORKING_CONFIG"
+	EnvNetworkingConfig = "BASETEN_SANDBOX_NETWORKING_CONFIG"
 
 	// Default values
 	DefaultMTU        = 1420

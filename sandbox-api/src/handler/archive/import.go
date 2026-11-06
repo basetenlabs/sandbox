@@ -28,7 +28,7 @@ import (
 const (
 	// EnvImportURL holds a presigned GET URL of an archive to restore. It is
 	// read once, at boot, before the workload starts.
-	EnvImportURL = "BL_ARCHIVE_IMPORT_URL"
+	EnvImportURL = "BASETEN_SANDBOX_ARCHIVE_IMPORT_URL"
 	// markerTemporarySuffix names the file the marker is written to before it is
 	// renamed into place. It is excluded from an archive like the marker itself,
 	// since an archive that could create it would decide what this API's own

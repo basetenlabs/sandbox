@@ -83,7 +83,7 @@ API_BASE_URL=http://localhost:8080 go test -v -run TestFilesystemRead ./tests/fi
 ## Run The Unprivileged Workload Mode
 
 When sandbox-api supervises a non-root workload user (Dockerfile `USER` /
-`--user` / `BL_SANDBOX_USER`), it stays root itself and scopes what it runs for
+`--user` / `BASETEN_SANDBOX_USER`), it stays root itself and scopes what it runs for
 the user. That mode has its own runner, which creates the user, builds and boots
 the API and runs `tests/identity`:
 

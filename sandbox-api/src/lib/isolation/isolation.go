@@ -2,7 +2,7 @@
 // inside the sandbox.
 //
 // Calls that reach the API through the gateway are authenticated before they
-// arrive; calls made from inside the VM are not. With BL_SANDBOX_API_ISOLATION
+// arrive; calls made from inside the VM are not. With BASETEN_SANDBOX_API_ISOLATION
 // on, the API installs nftables rules at boot that reject, on its port:
 //
 //   - connections opened over loopback by any non-root process, which covers
@@ -24,7 +24,7 @@ import (
 )
 
 // EnvEnabled opts into the isolation. It defaults to false.
-const EnvEnabled = "BL_SANDBOX_API_ISOLATION"
+const EnvEnabled = "BASETEN_SANDBOX_API_ISOLATION"
 
 // TableName is the nftables table holding the rules, in the inet family so a
 // single set of rules covers IPv4 and IPv6.

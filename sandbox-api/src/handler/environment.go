@@ -14,11 +14,11 @@ import (
 // current generation: on an environment update the host persists the new set,
 // the initrd refetches the document, then pings POST /environment/reload so
 // this process adopts it. Absent on VMs booted from an initrd that predates
-// the metadata protocol. Overridable through BL_METADATA_PATH.
+// the metadata protocol. Overridable through BASETEN_SANDBOX_METADATA_PATH.
 const defaultMetadataPath = "/bl/metadata"
 
 func metadataPath() string {
-	if path := os.Getenv("BL_METADATA_PATH"); path != "" {
+	if path := os.Getenv("BASETEN_SANDBOX_METADATA_PATH"); path != "" {
 		return path
 	}
 	return defaultMetadataPath
@@ -41,7 +41,7 @@ type EnvironmentHandler struct {
 	*BaseHandler
 
 	// path is resolved once at construction so a metadata document carrying
-	// BL_METADATA_PATH cannot redirect subsequent reloads.
+	// BASETEN_SANDBOX_METADATA_PATH cannot redirect subsequent reloads.
 	path string
 
 	mu sync.Mutex

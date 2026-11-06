@@ -192,10 +192,10 @@ func existingMount(mountPath string) (*MountInfo, error) {
 	return nil, nil
 }
 
-// getAuthTokenPath returns the path to the identity token based on BL_ENV.
-// Default is prod (blaxel.ai); use blaxel.dev when BL_ENV is "dev".
+// getAuthTokenPath returns the path to the identity token based on BASETEN_SANDBOX_ENV.
+// Default is prod (blaxel.ai); use blaxel.dev when BASETEN_SANDBOX_ENV is "dev".
 func getAuthTokenPath() string {
-	if os.Getenv("BL_ENV") == "dev" {
+	if os.Getenv("BASETEN_SANDBOX_ENV") == "dev" {
 		return "/var/run/secrets/blaxel.dev/identity/token"
 	}
 	return "/var/run/secrets/blaxel.ai/identity/token"
@@ -310,9 +310,9 @@ func MountDrive(driveName, mountPath, drivePath string, readOnly bool, uidMap, g
 	}
 
 	// Get workspace ID from environment
-	workspaceID := strings.ToLower(os.Getenv("BL_WORKSPACE_ID"))
+	workspaceID := strings.ToLower(os.Getenv("BASETEN_SANDBOX_TEAM_ID"))
 	if workspaceID == "" {
-		return "", "", fmt.Errorf("BL_WORKSPACE_ID environment variable not set")
+		return "", "", fmt.Errorf("BASETEN_SANDBOX_TEAM_ID environment variable not set")
 	}
 
 	// Construct infrastructure ID: drv-{driveName}-{workspaceID}

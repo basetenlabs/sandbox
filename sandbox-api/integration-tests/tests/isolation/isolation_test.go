@@ -1,9 +1,9 @@
-// Package tests covers BL_SANDBOX_API_ISOLATION: user workloads must not reach
+// Package tests covers BASETEN_SANDBOX_API_ISOLATION: user workloads must not reach
 // the API from inside the sandbox, while root (initrd, image entrypoints) still
 // can.
 //
-// It needs an API started with the isolation on and BL_SANDBOX_USER set to
-// WORKLOAD_USER, without BL_SANDBOX_USER_ENABLED: the isolation has to turn the
+// It needs an API started with the isolation on and BASETEN_SANDBOX_USER set to
+// WORKLOAD_USER, without BASETEN_SANDBOX_USER_ENABLED: the isolation has to turn the
 // identity on by itself. The suite runs as root, since a non-root test runner
 // is exactly what the isolation refuses. It is skipped unless ISOLATION=true.
 package tests
@@ -75,7 +75,7 @@ func TestRootReachesTheAPI(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-// The image USER applies without BL_SANDBOX_USER_ENABLED.
+// The image USER applies without BASETEN_SANDBOX_USER_ENABLED.
 func TestIsolationEnablesTheImageUser(t *testing.T) {
 	user := requireIsolation(t)
 	require.Equal(t, user, runProcess(t, "id -un"))

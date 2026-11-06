@@ -2,13 +2,13 @@
 // as, while the sandbox API itself keeps the privileges it needs (FUSE drive
 // mounts, WireGuard, CA bundle, keep-alive, port probing).
 //
-// The identity is configured with BL_SANDBOX_USER, using Docker's USER syntax:
+// The identity is configured with BASETEN_SANDBOX_USER, using Docker's USER syntax:
 // "app", "10001", "app:app" or "10001:10001". It only takes effect once
-// BL_SANDBOX_USER_ENABLED is on, so the runtime can export the image USER
+// BASETEN_SANDBOX_USER_ENABLED is on, so the runtime can export the image USER
 // before anyone opts in. When either is missing the whole mechanism is
 // disabled and everything keeps running as the API user (root), which is the
 // historical behaviour. --user opts in by itself, and so does
-// BL_SANDBOX_API_ISOLATION, which needs the workload off root to mean anything.
+// BASETEN_SANDBOX_API_ISOLATION, which needs the workload off root to mean anything.
 package identity
 
 import (
@@ -27,12 +27,12 @@ import (
 
 const (
 	// EnvUser is the environment variable holding the workload identity.
-	EnvUser = "BL_SANDBOX_USER"
+	EnvUser = "BASETEN_SANDBOX_USER"
 	// EnvEnabled opts into the identity coming from the environment. It
 	// defaults to false: the runtime exports the image USER for every
 	// sandbox, and honouring it unprompted would change how existing images
 	// behave.
-	EnvEnabled = "BL_SANDBOX_USER_ENABLED"
+	EnvEnabled = "BASETEN_SANDBOX_USER_ENABLED"
 )
 
 // Identity is a resolved, unprivileged POSIX identity.
